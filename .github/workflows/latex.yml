@@ -1,0 +1,34 @@
+name: Build LaTeX document
+on: [push]
+jobs:
+  build_latex:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Git repository
+        uses: actions/checkout@v3
+      - name: Compile LaTeX document
+        uses: xu-cheng/latex-action@v3
+        with:
+          latexmk_use_xelatex: true
+          root_file: |
+            *.tex
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Upload PDF artifact
+          path: |
+            *.pdf
+      - name: Generate release tag
+        id: generate_release_tag
+        uses: alexvingg/next-release-tag@v1.0.4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tag_prefix: ''
+      - name: Create Release
+        uses: ncipollo/release-action@v1.13.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          artifacts: "*.pdf"
+          tag: ${{ steps.generate_release_tag.outputs.release_tag }}
+          name: Release ${{ steps.generate_release_tag.outputs.release_tag }}
